@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖遺物確率分析ツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1><span class="text">【原神】</span>
+            <span class="text">聖遺物確率分析ツール</span></h1>
+    </header>
+
+    <main>
+        <section>
+            <h2>上位% 分析</h2>
+            <p>聖遺物のメインステータスとスコアを入力してください。</p>
+            <form id="inputForm">
+                <div class="scrollable tap_to_scrollright">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="table-kind">部位</th>
+                                <th class="table-mein">メインステータス</th>
+                                <th class="table-score">スコア</th>
+                                <th class="table-top">
+                                    <label class="open" for="pop-up1" style="display: inline-block; _display: inline;">❓</label>
+                                    上位%
+                                    <input type="checkbox" id="pop-up1">
+                                    <div class="overlay">
+                                        <div class="window">
+                                            <label class="close" for="pop-up1">✕</label>
+                                            <h4>上位% について</h4>
+                                            <p>聖遺物の上位%とは、その聖遺物のスコア以上の聖遺物を獲得する確率を指します。</p>
+                                            <p>例えば、スコア40の聖遺物が上位1.28%であれば、スコアが40以上の聖遺物を得る確率は1.28%となります。</p>
+                                        </div>
+                                    </div>
+                                    
+                                </th>
+                                <th class="table-evaluating">
+                                    <label class="open" for="pop-up2" style="display: inline-block; _display: inline;">❓</label>
+                                    評価
+                                    <input type="checkbox" id="pop-up2">
+                                    <div class="overlay">
+                                        <div class="window">
+                                            <label class="close" for="pop-up2">✕</label>
+                                            <h4>評価について</h4>
+                                            <p>聖遺物の上位%に応じて、C, B, A, S, SS, ...とランクをつけます。</p>
+                                            <img src="image.png" alt="評価の基準の参考画像が表示されます。">
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><p>花</p></td>
+                                <td>HP実数</td>
+                                <td><input type="number" id="flower_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td><div id="flower_top"></div></td>
+                                <td><div id="flower_rank"></div></td>
+                            </tr>
+                            <tr>
+                                <td><p>羽</p></td>
+                                <td>攻撃力実数</td>
+                                <td><input type="number" id="plume_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td><div id="plume_top"></div></td>
+                                <td><div id="plume_rank"></div></td>
+                            </tr>
+                            <tr>
+                                <td><p>時計</p></td>
+                                <td>
+                                    <select id="sand_main" class="mein-select">
+                                        <option value="1">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="3">元素チャージ効率</option>
+                                        <option value="4">元素熟知</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="sand_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td><div id="sand_top"></div></td>
+                                <td><div id="sand_rank"></div></td>
+                            </tr>
+                            <tr>
+                                <td><p>杯</p></td>
+                                <td>
+                                    <select id="goblet_main" class="mein-select">
+                                        <option value="5">元素・物理ダメージバフ</option>
+                                        <option value="6">攻撃力%</option>
+                                        <option value="7">HP%</option>
+                                        <option value="8">元素熟知</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="goblet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td><div id="goblet_top"></div></td>
+                                <td><div id="goblet_rank"></div></td>
+                            </tr>
+                            <tr>
+                                <td><p>冠</p></td>
+                                <td>
+                                    <select id="circlet_main" class="mein-select">
+                                        <option value="9">会心率%</option>
+                                        <option value="9">会心ダメージ%</option>
+                                        <option value="10">攻撃力%</option>
+                                        <option value="11">HP%</option>
+                                        <option value="12">元素熟知</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="circlet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td><div id="circlet_top"></div></td>
+                                <td><div id="circlet_rank"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+                <p>
+                <label for="multiplierSelect">スコア計算式：
+                    <p style="margin: 0px">会心率% ×2 + 会心ダメージ%</p>
+                    <select id="multiplierSelect" class="formula-select">
+                        <option value="0">（会心のみ）</option>
+                        <option value="1" selected>+ 攻撃力%</option>
+                        <option value="2">+ 攻撃力% + 元素熟知 × 1/4</option>
+                        <option value="3">+ 攻撃力% + 元素チャージ効率</option>
+                        <option value="4">+ HP%</option>
+                        <option value="5">+ HP% + 元素熟知 × 1/4</option>
+                        <option value="6">+ HP% + 元素チャージ効率</option>
+                    </select>
+                </p>
+                <button type="button" onclick="calculate_top()">上位%を計算</button>
+                </label>
+        </section>
+
+        <section>
+            <h2>更新確率・周回数 分析</h2>
+            <p><span class="text">条件を入力してください。</span>
+                <span class="text">確率と周回数はどちらか一方だけでもOKです。</span></p>
+            <p>聖遺物の入手方法：
+                <select id="getting-way" class="situation-select" onchange="show_or_hide()">
+                    <option value="domain">秘境</option>
+                    <option value="strong">廻聖</option>
+                    <option value="both">秘境＋廻聖</option>
+                </select>
+            </p>
+            <label id="strong-both-showed">
+                <p>
+                    <span class="text">入手する聖遺物に対する</span>
+                    <span class="text">廻聖する聖遺物の割合：</span>
+                <input type="number" id="strong-rate" class="situation-input no-spin" value="90" onchange="never_minus(this), never_over100(this)"></input>%
+                </p>
+            </label>
+            <p><input type="number" id="trials" class="situation-input no-spin" value="100" onchange="never_minus(this)"></input>
+                <span id="domain-both-showed1">
+                    <span class="text">周だけ秘境を濃縮樹脂で周回したとき、</span>
+                    <span class="text">よりスコアの高い聖遺物を獲得する確率</span></span>
+                <span id="strong-showed1">
+                    <span class="text">個の聖遺物を廻聖したとき、</span>
+                    <span class="text">よりスコアの高い聖遺物を獲得する確率</span></span>
+            </p>
+            <div class="scrollable">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="table-artifact">花</th>
+                            <th class="table-artifact">羽</th>
+                            <th class="table-artifact">時計</th>
+                            <th class="table-artifact">杯</th>
+                            <th class="table-artifact">冠</th>
+                            <th class="table-allartifact">いずれか１つ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><div id="flower_probability"></div></td>
+                            <td><div id="plume_probability"></div></td>
+                            <td><div id="sand_probability"></div></td>
+                            <td><div id="goblet_probability"></div></td>
+                            <td><div id="circlet_probability"></div></td>
+                            <td><div id="artifact_probability"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+            <input type="number" id="getting_probability" step="1" class="situation-input" value="50" onchange="never_minus(this), never_over100(this)"></input>
+            <span id="domain-both-showed2">
+                <span class="text">%の確率で、</span>
+                <span class="text">よりスコアの高い聖遺物を獲得するために必要な秘境の濃縮樹脂での周回数</span></span>
+            <span id="strong-showed2">
+                <span class="text">%の確率で、</span>
+                <span class="text">よりスコアの高い聖遺物を獲得するために必要な廻聖する聖遺物の個数</span></span>
+            </p>
+            <div class="scrollable">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="table-artifact">花</th>
+                            <th class="table-artifact">羽</th>
+                            <th class="table-artifact">時計</th>
+                            <th class="table-artifact">杯</th>
+                            <th class="table-artifact">冠</th>
+                            <th class="table-allartifact">いずれか１つ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><div id="flower_trials"></div></td>
+                            <td><div id="plume_trials"></div></td>
+                            <td><div id="sand_trials"></div></td>
+                            <td><div id="goblet_trials"></div></td>
+                            <td><div id="circlet_trials"></div></td>
+                            <td><div id="artifact_trials"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p></p>
+            <button type="button" onclick="calculate_probability()">更新確率・周回数 を計算</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>製作者：さしす　
+            <a href="https://www.hoyolab.com/accountCenter/postList?id=103140761" target="_blank">
+            https://www.hoyolab.com/accountCenter</a></p>
+        <p class="break">
+            <span class="text">詳細な仕様や使い方は記事をご覧ください。</span>
+            <span class="text">フィードバックもそちらにお寄せください。</span></p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
