@@ -49,6 +49,10 @@ h2 {
     color: #444;
 }
 
+.narrow {
+    margin: 0
+}
+
 label {
     display: block;
     margin-bottom: 10px;
@@ -70,7 +74,7 @@ input {
 }
 
 .situation-input {
-    width: 55px;
+    width: 59px;
 }
 
 .no-spin::-webkit-inner-spin-button,
@@ -88,6 +92,10 @@ input {
 }
 
 #strong-showed2 {
+    display: none;
+}
+
+#customizable_score_formula {
     display: none;
 }
 
@@ -109,6 +117,9 @@ select {
 
 .formula-select {
     width: 250px;
+}
+.status-select {
+    width: 160px;
 }
 
 button {
@@ -196,6 +207,14 @@ td {
 .table-allartifact {
     width: 20%;
     min-width: 96px;
+}
+
+.history {
+    width: 50% !important;
+}
+
+.left-text {
+    text-align: left;
 }
 
 .open {
