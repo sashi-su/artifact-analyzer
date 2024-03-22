@@ -6,6 +6,8 @@
     <title>聖遺物確率分析ツール</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
+
 <body>
 
     <header>
@@ -75,8 +77,8 @@
                                     <select id="sand_main" class="mein-select">
                                         <option value="1">攻撃力%</option>
                                         <option value="2">HP%</option>
-                                        <option value="3">元素チャージ効率</option>
                                         <option value="4">元素熟知</option>
+                                        <option value="5">元素チャージ効率</option>
                                     </select>
                                 </td>
                                 <td><input type="number" id="sand_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
@@ -87,10 +89,10 @@
                                 <td><p>杯</p></td>
                                 <td>
                                     <select id="goblet_main" class="mein-select">
-                                        <option value="5">元素・物理ダメージバフ</option>
-                                        <option value="6">攻撃力%</option>
-                                        <option value="7">HP%</option>
-                                        <option value="8">元素熟知</option>
+                                        <option value="6">元素・物理ダメージバフ</option>
+                                        <option value="1">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="4">元素熟知</option>
                                     </select>
                                 </td>
                                 <td><input type="number" id="goblet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
@@ -101,11 +103,11 @@
                                 <td><p>冠</p></td>
                                 <td>
                                     <select id="circlet_main" class="mein-select">
-                                        <option value="9">会心率%</option>
-                                        <option value="9">会心ダメージ%</option>
-                                        <option value="10">攻撃力%</option>
-                                        <option value="11">HP%</option>
-                                        <option value="12">元素熟知</option>
+                                        <option value="7">会心率%</option>
+                                        <option value="8">会心ダメージ%</option>
+                                        <option value="1">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="4">元素熟知</option>
                                     </select>
                                 </td>
                                 <td><input type="number" id="circlet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
@@ -116,22 +118,51 @@
                     </table>
                 </div>
             </form>
+
+            <label for="multiplierSelect">
                 <p>
-                <label for="multiplierSelect">スコア計算式：
-                    <p style="margin: 0px">会心率% ×2 + 会心ダメージ%</p>
-                    <select id="multiplierSelect" class="formula-select">
+                    <span class="text">スコア計算式：</span>
+                    <span class="text" id="score_formula">会心率% ×2 + 会心ダメージ%</span>
+                    <select id="multiplierSelect" class="formula-select" onchange="show_or_hide()">
                         <option value="0">（会心のみ）</option>
                         <option value="1" selected>+ 攻撃力%</option>
                         <option value="2">+ 攻撃力% + 元素熟知 × 1/4</option>
-                        <option value="3">+ 攻撃力% + 元素チャージ効率</option>
-                        <option value="4">+ HP%</option>
-                        <option value="5">+ HP% + 元素熟知 × 1/4</option>
-                        <option value="6">+ HP% + 元素チャージ効率</option>
+                        <option value="3">+ HP%</option>
+                        <option value="4">+ HP% + 元素熟知 × 1/4</option>
+                        <option value="5">（カスタム計算式）</option>
                     </select>
                 </p>
-                <button type="button" onclick="calculate_top()">上位%を計算</button>
+
+                <label id="customizable_score_formula">
+                    <p class="narrow"><span class="text">聖遺物のスコア</span></p>
+                    <p class="narrow"><span class="text">　= <input type="number" class="score-input no-spin" step="0.01" id="c_multiplier" value="2" onchange="never_minus(this), never_toobig()"> × 会心率%</span>
+                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="d_multiplier" value="1" onchange="never_minus(this), never_toobig()"> × 会心ダメージ%</span>
+                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="a_multiplier" onchange="never_minus(this), never_toobig()">
+							×<select id="status_a" class="status-select" onchange="never_toobig()">
+								<option value="1">攻撃力%</option>
+								<option value="2">HP%</option>
+								<option value="3">防御力%</option>
+								<option value="4">元素熟知</option>
+								<option value="5">元素チャージ効率</option>
+								<option value="0">（なし）</option>
+							</select>
+						</span>
+                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="b_multiplier" onchange="never_minus(this), never_toobig()">
+							×<select id="status_b" class="status-select" onchange="never_toobig()">
+							    <option value="1">攻撃力%</option>
+							    <option value="2">HP%</option>
+							    <option value="3">防御力%</option>
+							    <option value="4">元素熟知</option>
+							    <option value="5">元素チャージ効率</option>
+							    <option value="0" selected>（なし）</option>
+							</select>
+	   					</span>
+                    </p>
                 </label>
+            </label>
+            <button type="button" onclick="calculate_top()">上位%を計算</button>
         </section>
+
 
         <section>
             <h2>更新確率・周回数 分析</h2>
@@ -159,6 +190,7 @@
                     <span class="text">個の聖遺物を廻聖したとき、</span>
                     <span class="text">よりスコアの高い聖遺物を獲得する確率</span></span>
             </p>
+
             <div class="scrollable">
                 <table>
                     <thead>
@@ -183,6 +215,7 @@
                     </tbody>
                 </table>
             </div>
+
             <p>
             <input type="number" id="getting_probability" step="1" class="situation-input" value="50" onchange="never_minus(this), never_over100(this)"></input>
             <span id="domain-both-showed2">
@@ -192,6 +225,7 @@
                 <span class="text">%の確率で、</span>
                 <span class="text">よりスコアの高い聖遺物を獲得するために必要な廻聖する聖遺物の個数</span></span>
             </p>
+
             <div class="scrollable">
                 <table>
                     <thead>
@@ -216,19 +250,53 @@
                     </tbody>
                 </table>
             </div>
+
             <p></p>
             <button type="button" onclick="calculate_probability()">更新確率・周回数 を計算</button>
         </section>
+
+
+        <section>
+            <h2>更新履歴など</h2>
+            <div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>3/22</td>
+                            <td class="left-text">
+                                <span class="text">カスタム計算式機能を追加。</span>
+                                <span class="text">スコア計算式が自由に設定できるようになりました</span><br>
+                                <a href="https://www.hoyolab.com/article/25100475?create=1" target="_blank"><span class="text">準備中</span><span class="text">準備中</span></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2/9</td>
+                            <td class="left-text">
+                                聖遺物確率分析ツールの紹介記事をHoYoLABで公開<br>
+                                <a href="https://www.hoyolab.com/article/25100475?create=1" target="_blank"><span class="text">https://www.hoyolab.com</span><span class="text">/article/25100475</span></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024. 2/4</td>
+                            <td class="left-text">webページを公開</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
+    
     <footer>
-        <p>製作者：さしす　
+        <p>制作者：さしす　
             <a href="https://www.hoyolab.com/accountCenter/postList?id=103140761" target="_blank">
             https://www.hoyolab.com/accountCenter</a></p>
         <p class="break">
-            <span class="text">詳細な仕様や使い方は<a href="https://www.hoyolab.com/article/25100475?create=1" target="_blank">記事</a>をご覧ください。</span>
+            <span class="text">詳細な仕様や使い方は<a href="https://www.hoyolab.com/article/25100475?create=1" target="_blank">記事</a>で紹介しています。</span>
             <span class="text">フィードバックもそちらにお寄せください。</span></p>
     </footer>
+
     <script src="script.js"></script>
+    
 </body>
 </html>
