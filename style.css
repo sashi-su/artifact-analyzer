@@ -77,6 +77,13 @@ input {
     width: 59px;
 }
 
+.checkbox_input {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    top: 3px;
+}
+
 .no-spin::-webkit-inner-spin-button,
 .no-spin::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -122,15 +129,21 @@ select {
     width: 160px;
 }
 
-button {
+.small-button {
+    margin-top: 10px;
+    box-sizing: border-box;
+    cursor: pointer;
+    height: 30px;
+    font-size: 15px;
+    }
+    
+.big-button {
     margin-top: 10px;
     margin-bottom: 10px;
     padding: 8px;
     width: 100%;
     box-sizing: border-box;
-}
 
-button {
     background-color: #333;
     color: white;
     cursor: pointer;
@@ -138,7 +151,7 @@ button {
     font-size: 20px;
 }
 
-button:hover {
+.big-button:hover {
     background-color: #555;
 }
 
@@ -176,6 +189,10 @@ td {
     height:50px;
 }
 
+.table-number {
+    min-width: 16px;
+}
+
 .table-kind {
     min-width: 35px;
 }
@@ -183,6 +200,19 @@ td {
 .table-mein {
     min-width: 223px;
 }
+
+@media (min-width: 768px) {
+    .table-status {
+        min-width: 143px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .table-status {
+        width: 10%;
+    }
+}
+
 
 .table-score {
     min-width: 80px !important;
@@ -201,12 +231,12 @@ td {
 
 .table-artifact {
     width: 16%;
-    min-width: 32px
+    min-width: 60px
 }
 
 .table-allartifact {
     width: 20%;
-    min-width: 96px;
+    min-width: 95px;
 }
 
 .history {
@@ -262,3 +292,4 @@ td {
     right: 4px;
     cursor:pointer;
 }
+
