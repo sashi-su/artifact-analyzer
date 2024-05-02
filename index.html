@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
+<!-- コードをご覧いただきありがとうございます。 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>聖遺物確率分析ツール</title>
+
+    <!-- javascriptのファイルはmainタグの一番下にあります。 -->
+    <!-- ↓がcssのファイルです。雑なので見る価値はないと思います。 -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -18,14 +22,19 @@
     <main>
         <section>
             <h2>上位% 分析</h2>
-            <p>聖遺物のメインステータスとスコアを入力してください。</p>
+            <p>聖遺物のメインステータスやスコアなどを入力してください。</p>
             <form id="inputForm">
                 <div class="scrollable tap_to_scrollright">
-                    <table>
+                    <table id="artifact_table">
                         <thead>
-                            <tr>
-                                <th class="table-kind">部位</th>
+                            <tr id="artifact_table_header">
+                                <th class="table-number"></th>
+                                <th class="table-kind">種類</th>
                                 <th class="table-mein">メインステータス</th>
+                                <th class="table-status"><nobr>会心率%</nobr></th>
+                                <th class="table-status"><nobr>会心ダメージ%</nobr></th>
+                                <th class="table-status" id="status_a_name"><nobr>ステータスA</nobr></th>
+                                <th class="table-status" id="status_b_name"><nobr>ステータスB</nobr></th>
                                 <th class="table-score">スコア</th>
                                 <th class="table-top">
                                     <label class="open" for="pop-up1" style="display: inline-block; _display: inline;">❓</label>
@@ -56,74 +65,186 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="artifact_table_rows">
                             <tr>
-                                <td><p>花</p></td>
-                                <td>HP実数</td>
-                                <td><input type="number" id="flower_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
-                                <td><div id="flower_top"></div></td>
-                                <td><div id="flower_rank"></div></td>
-                            </tr>
-                            <tr>
-                                <td><p>羽</p></td>
-                                <td>攻撃力実数</td>
-                                <td><input type="number" id="plume_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
-                                <td><div id="plume_top"></div></td>
-                                <td><div id="plume_rank"></div></td>
-                            </tr>
-                            <tr>
-                                <td><p>時計</p></td>
+                                <td>1</td>
                                 <td>
-                                    <select id="sand_main" class="mein-select">
-                                        <option value="1">攻撃力%</option>
-                                        <option value="2">HP%</option>
-                                        <option value="4">元素熟知</option>
-                                        <option value="5">元素チャージ効率</option>
+                                    <select onchange="main_select(), set_header()" class="category-select">
+                                        <option value="flower" selected>花</option>
+                                        <option value="plume">羽</option>
+                                        <option value="sand">時計</option>
+                                        <option value="goblet">杯</option>
+                                        <option value="circlet">冠</option>
                                     </select>
                                 </td>
-                                <td><input type="number" id="sand_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
-                                <td><div id="sand_top"></div></td>
-                                <td><div id="sand_rank"></div></td>
-                            </tr>
-                            <tr>
-                                <td><p>杯</p></td>
                                 <td>
-                                    <select id="goblet_main" class="mein-select">
-                                        <option value="6">元素・物理ダメージバフ</option>
-                                        <option value="1">攻撃力%</option>
+                                    <span class="flower_showed">HP実数</span>
+                                    <span class="plume_showed" style="display:none">攻撃力実数</span>
+                                    <!--"mein-select"というクラス名につづりミスがあるが、このクラス名のつづりは全部間違えていて、今のところ問題は起きていないので放置-->
+                                    <select onchange="set_header()" class="mein-select other_showed" style="display:none">
+                                        <option value="1" class="main_attack">攻撃力%</option>
                                         <option value="2">HP%</option>
+                                        <option value="3">防御力%</option>
                                         <option value="4">元素熟知</option>
+                                        <option value="5" class="main_er">元素チャージ効率%</option>
+                                        <option value="6" class="main_damagebuff">元素・物理ダメージバフ</option>
+                                        <option value="7" class="main_critrate">会心率%</option>
+                                        <option value="8" class="main_critdamage">会心ダメージ%</option>
                                     </select>
                                 </td>
-                                <td><input type="number" id="goblet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
-                                <td><div id="goblet_top"></div></td>
-                                <td><div id="goblet_rank"></div></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                             <tr>
-                                <td><p>冠</p></td>
+                                <td>2</td>
                                 <td>
-                                    <select id="circlet_main" class="mein-select">
-                                        <option value="7">会心率%</option>
-                                        <option value="8">会心ダメージ%</option>
-                                        <option value="1">攻撃力%</option>
-                                        <option value="2">HP%</option>
-                                        <option value="4">元素熟知</option>
+                                    <select onchange="main_select(), set_header()" class="category-select">
+                                        <option value="flower">花</option>
+                                        <option value="plume" selected>羽</option>
+                                        <option value="sand">時計</option>
+                                        <option value="goblet">杯</option>
+                                        <option value="circlet">冠</option>
                                     </select>
                                 </td>
-                                <td><input type="number" id="circlet_score" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
-                                <td><div id="circlet_top"></div></td>
-                                <td><div id="circlet_rank"></div></td>
+                                <td>
+                                    <span class="flower_showed" style="display:none">HP実数</span>
+                                    <span class="plume_showed">攻撃力実数</span>
+                                    <select onchange="set_header()" class="mein-select other_showed" style="display:none">
+                                        <option value="1" class="main_attack">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="3">防御力%</option>
+                                        <option value="4">元素熟知</option>
+                                        <option value="5" class="main_er">元素チャージ効率%</option>
+                                        <option value="6" class="main_damagebuff">元素・物理ダメージバフ</option>
+                                        <option value="7" class="main_critrate">会心率%</option>
+                                        <option value="8" class="main_critdamage">会心ダメージ%</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <select onchange="main_select(), set_header()" class="category-select">
+                                        <option value="flower">花</option>
+                                        <option value="plume">羽</option>
+                                        <option value="sand" selected>時計</option>
+                                        <option value="goblet">杯</option>
+                                        <option value="circlet">冠</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="flower_showed" style="display:none">HP実数</span>
+                                    <span class="plume_showed" style="display:none">攻撃力実数</span>
+                                    <select onchange="set_header()" class="mein-select other_showed">
+                                        <option value="1" class="main_attack" selected>攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="3">防御力%</option>
+                                        <option value="4">元素熟知</option>
+                                        <option value="5" class="main_er">元素チャージ効率%</option>
+                                        <option value="6" class="main_damagebuff" disabled>元素・物理ダメージバフ</option>
+                                        <option value="7" class="main_critrate" disabled>会心率%</option>
+                                        <option value="8" class="main_critdamage" disabled>会心ダメージ%</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>
+                                    <select onchange="main_select(), set_header()" class="category-select">
+                                        <option value="flower">花</option>
+                                        <option value="plume">羽</option>
+                                        <option value="sand">時計</option>
+                                        <option value="goblet" selected>杯</option>
+                                        <option value="circlet">冠</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="flower_showed" style="display:none">HP実数</span>
+                                    <span class="plume_showed" style="display:none">攻撃力実数</span>
+                                    <select onchange="set_header()" class="mein-select other_showed">
+                                        <option value="1" class="main_attack">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="3">防御力%</option>
+                                        <option value="4">元素熟知</option>
+                                        <option value="5" class="main_er" disabled>元素チャージ効率%</option>
+                                        <option value="6" class="main_damagebuff" selected>元素・物理ダメージバフ</option>
+                                        <option value="7" class="main_critrate" disabled>会心率%</option>
+                                        <option value="8" class="main_critdamage" disabled>会心ダメージ%</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>
+                                    <select onchange="main_select(), set_header()" class="category-select">
+                                        <option value="flower">花</option>
+                                        <option value="plume">羽</option>
+                                        <option value="sand">時計</option>
+                                        <option value="goblet">杯</option>
+                                        <option value="circlet" selected>冠</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="flower_showed" style="display:none">HP実数</span>
+                                    <span class="plume_showed" style="display:none">攻撃力実数</span>
+                                    <select onchange="set_header()" class="mein-select other_showed">
+                                        <option value="1" class="main_attack">攻撃力%</option>
+                                        <option value="2">HP%</option>
+                                        <option value="3">防御力%</option>
+                                        <option value="4">元素熟知</option>
+                                        <option value="5" class="main_er" disabled>元素チャージ効率%</option>
+                                        <option value="6" class="main_damagebuff" disabled>元素・物理ダメージバフ</option>
+                                        <option value="7" class="main_critrate" selected>会心率%</option>
+                                        <option value="8" class="main_critdamage">会心ダメージ%</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this), calculate_score()"></td>
+                                <td><input type="number" class="score-input no-spin" step="0.1" onchange="never_minus(this)">点</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <button id="addRowBtn" class="small-button" onclick="set_status()">聖遺物を一つ追加</button>
+                &nbsp;
+                <button id="removeRowBtn" class="small-button">聖遺物を一つ削除</button>
             </form>
 
             <label for="multiplierSelect">
                 <p>
                     <span class="text">スコア計算式：</span>
                     <span class="text" id="score_formula">会心率% ×2 + 会心ダメージ%</span>
-                    <select id="multiplierSelect" class="formula-select" onchange="show_or_hide()">
+                    <select id="multiplierSelect" class="formula-select" onchange="show_or_hide(), set_status(), calculate_score()">
                         <option value="0">（会心のみ）</option>
                         <option value="1" selected>+ 攻撃力%</option>
                         <option value="2">+ 攻撃力% + 元素熟知 × 1/4</option>
@@ -135,32 +256,33 @@
 
                 <label id="customizable_score_formula">
                     <p class="narrow"><span class="text">聖遺物のスコア</span></p>
-                    <p class="narrow"><span class="text">　= <input type="number" class="score-input no-spin" step="0.01" id="c_multiplier" value="2" onchange="never_minus(this), never_toobig()"> × 会心率%</span>
-                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="d_multiplier" value="1" onchange="never_minus(this), never_toobig()"> × 会心ダメージ%</span>
-                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="a_multiplier" onchange="never_minus(this), never_toobig()">
-							×<select id="status_a" class="status-select" onchange="never_toobig()">
+                    <p class="narrow"><span class="text">&nbsp;= <input type="number" class="score-input no-spin" step="0.01" id="c_multiplier" value="2" onchange="never_minus(this), never_toobig(), set_status(), calculate_score()"> × 会心率%</span>
+                        <span class="text">&nbsp;+ <input type="number" class="score-input no-spin" step="0.01" id="d_multiplier" value="1" onchange="never_minus(this), never_toobig(), set_status(), calculate_score()"> × 会心ダメージ%</span>
+                        <span class="text">&nbsp;+ <input type="number" class="score-input no-spin" step="0.01" id="a_multiplier" onchange="never_minus(this), never_toobig(), calculate_score()">
+							×<select id="status_a" class="status-select" onchange="never_toobig(), set_status()">
 								<option value="1">攻撃力%</option>
 								<option value="2">HP%</option>
 								<option value="3">防御力%</option>
 								<option value="4">元素熟知</option>
-								<option value="5">元素チャージ効率</option>
+								<option value="5">元素チャージ効率%</option>
 								<option value="0">（なし）</option>
 							</select>
 						</span>
-                        <span class="text">　+ <input type="number" class="score-input no-spin" step="0.01" id="b_multiplier" onchange="never_minus(this), never_toobig()">
-							×<select id="status_b" class="status-select" onchange="never_toobig()">
+                        <span class="text">&nbsp;+ <input type="number" class="score-input no-spin" step="0.01" id="b_multiplier" onchange="never_minus(this), never_toobig(), calculate_score()">
+							×<select id="status_b" class="status-select" onchange="never_toobig(), set_status()">
 							    <option value="1">攻撃力%</option>
 							    <option value="2">HP%</option>
 							    <option value="3">防御力%</option>
 							    <option value="4">元素熟知</option>
-							    <option value="5">元素チャージ効率</option>
+							    <option value="5">元素チャージ効率%</option>
 							    <option value="0" selected>（なし）</option>
 							</select>
 	   					</span>
                     </p>
                 </label>
             </label>
-            <button type="button" onclick="calculate_top()">上位%を計算</button>
+            <p><input type="checkbox" class="checkbox_input" id="calculate_score" onchange="set_status(), calculate_score()">スコアを自動で計算</p>
+            <button type="button" onclick="calculate_top()" class="big-button">上位%を計算</button>
         </section>
 
 
@@ -171,7 +293,7 @@
             <p>聖遺物の入手方法：
                 <select id="getting-way" class="situation-select" onchange="show_or_hide()">
                     <option value="domain">秘境</option>
-                    <option value="strong">廻聖</option>
+                    <option value="box">廻聖</option>
                     <option value="both">秘境＋廻聖</option>
                 </select>
             </p>
@@ -192,25 +314,25 @@
             </p>
 
             <div class="scrollable">
-                <table>
+                <table id="probability_table">
                     <thead>
-                        <tr>
-                            <th class="table-artifact">花</th>
-                            <th class="table-artifact">羽</th>
-                            <th class="table-artifact">時計</th>
-                            <th class="table-artifact">杯</th>
-                            <th class="table-artifact">冠</th>
-                            <th class="table-allartifact">いずれか１つ</th>
+                        <tr id="probability_table_header">
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-allartifact" id="probability_allartifacts_column"><nobr>✓のついた聖遺物のうち</nobr><br><nobr>いずれか１つ</nobr></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><div id="flower_probability"></div></td>
-                            <td><div id="plume_probability"></div></td>
-                            <td><div id="sand_probability"></div></td>
-                            <td><div id="goblet_probability"></div></td>
-                            <td><div id="circlet_probability"></div></td>
-                            <td><div id="artifact_probability"></div></td>
+                        <tr id="probability_row">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td id="probability_allartifacts"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -220,39 +342,43 @@
             <input type="number" id="getting_probability" step="1" class="situation-input" value="50" onchange="never_minus(this), never_over100(this)"></input>
             <span id="domain-both-showed2">
                 <span class="text">%の確率で、</span>
-                <span class="text">よりスコアの高い聖遺物を獲得するために必要な秘境の濃縮樹脂での周回数</span></span>
+                <span class="text">よりスコアの高い聖遺物を獲得するために</span>
+                <span class="text">必要な秘境の濃縮樹脂での周回数</span>
+            </span>
             <span id="strong-showed2">
                 <span class="text">%の確率で、</span>
-                <span class="text">よりスコアの高い聖遺物を獲得するために必要な廻聖する聖遺物の個数</span></span>
+                <span class="text">よりスコアの高い聖遺物を獲得するために</span>
+                <span class="text">必要な廻聖する聖遺物の個数</span>
+            </span>
             </p>
 
             <div class="scrollable">
-                <table>
+                <table id="trials_table">
                     <thead>
-                        <tr>
-                            <th class="table-artifact">花</th>
-                            <th class="table-artifact">羽</th>
-                            <th class="table-artifact">時計</th>
-                            <th class="table-artifact">杯</th>
-                            <th class="table-artifact">冠</th>
-                            <th class="table-allartifact">いずれか１つ</th>
+                        <tr id="trials_table_header">
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-artifact"></th>
+                            <th class="table-allartifact" id="trials_allartifacts_column"><nobr>✓のついた聖遺物のうち</nobr><br><nobr>いずれか１つ</nobr></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><div id="flower_trials"></div></td>
-                            <td><div id="plume_trials"></div></td>
-                            <td><div id="sand_trials"></div></td>
-                            <td><div id="goblet_trials"></div></td>
-                            <td><div id="circlet_trials"></div></td>
-                            <td><div id="artifact_trials"></div></td>
+                        <tr id="trials_row">
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td id="trials_allartifacts"></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <p></p>
-            <button type="button" onclick="calculate_probability()">更新確率・周回数 を計算</button>
+            <button type="button" onclick="calculate_probability()" class="big-button">更新確率・周回数 を計算</button>
         </section>
 
 
@@ -262,33 +388,43 @@
                 <table>
                     <tbody>
                         <tr>
+                            <td>?/?</td>
+                            <td class="left-text">
+                                <span class="text">聖遺物の追加・削除機能、スコアの自動計算機能などを追加。</span>
+                                <span class="text">分析する聖遺物の個数を自由に設定したり、指定した計算式でスコアを算出できるようになりました。</span><br>
+                                <a href="https://www.hoyolab.com/article/26213388" target="_blank"><span class="text">???</span><span class="text">???</span></a>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>3/22</td>
                             <td class="left-text">
                                 <span class="text">カスタム計算式機能を追加。</span>
-                                <span class="text">スコア計算式が自由に設定できるようになりました</span><br>
+                                <span class="text">スコア計算式を自由に設定できるようになりました。</span><br>
                                 <a href="https://www.hoyolab.com/article/26213388" target="_blank"><span class="text">https://www.hoyolab.com</span><span class="text">/article/26213388</span></a>
                             </td>
                         </tr>
                         <tr>
                             <td>2/9</td>
                             <td class="left-text">
-                                聖遺物確率分析ツールの紹介記事をHoYoLABで公開<br>
+                                聖遺物確率分析ツールの紹介記事をHoYoLABで公開。<br>
                                 <a href="https://www.hoyolab.com/article/25100475?create=1" target="_blank"><span class="text">https://www.hoyolab.com</span><span class="text">/article/25100475</span></a>
                             </td>
                         </tr>
                         <tr>
                             <td>2024. 2/4</td>
-                            <td class="left-text">webページを公開</td>
+                            <td class="left-text">webページを公開。</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
-
+    
+    <!-- ↓が聖遺物を分析するコードが書かれたjavascriptのファイルです。 -->
+    <script src="script.js"></script>
     
     <footer>
-        <p>制作者：さしす　
+        <p>制作者：さしす&nbsp;
             <a href="https://www.hoyolab.com/accountCenter/postList?id=103140761" target="_blank">
             https://www.hoyolab.com/accountCenter</a></p>
         <p class="break">
@@ -296,7 +432,6 @@
             <span class="text">フィードバックもそちらにお寄せください。</span></p>
     </footer>
 
-    <script src="script.js"></script>
     
 </body>
 </html>
