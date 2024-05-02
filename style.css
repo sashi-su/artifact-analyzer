@@ -69,9 +69,6 @@ input {
     font-size: 15px
 }
 
-.checkbox {
-    accent-color: #888;
-}
 
 .score-input {
     width: 50px;
@@ -86,6 +83,7 @@ input {
     height: 16px;
     position: relative;
     top: 3px;
+    accent-color: #888;
 }
 
 .no-spin::-webkit-inner-spin-button,
