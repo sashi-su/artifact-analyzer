@@ -55,7 +55,7 @@ function main_select(){
                     dmg.disabled = false;
                     rate.selected = true;
                 } else {
-                    alert_error(1);
+                    alert("条件分岐に失敗しました");
                 }
             }
         });
@@ -85,7 +85,7 @@ document.getElementById("addRowBtn").addEventListener("click", function(event) {
 
     cell1.innerHTML = String(table.rows.length);
     cell2.innerHTML =
-    `<select onchange="main_select(), set_header()" class="category-select">
+    `<select onchange="main_select(), set_header(), add_options_to_artifact_definition()" class="category-select">
         <option value="flower">花</option>
         <option value="plume">羽</option>
         <option value="sand">時計</option>
@@ -95,7 +95,7 @@ document.getElementById("addRowBtn").addEventListener("click", function(event) {
     cell3.innerHTML =
     `<span class="flower_showed">HP実数</span>
     <span class="plume_showed" style="display:none">攻撃力実数</span>
-    <select onchange="set_header()" class="mein-select other_showed" style="display:none">
+    <select onchange="set_header(), add_options_to_artifact_definition()" class="mein-select other_showed" style="display:none">
         <option value="1" class="main_attack">攻撃力%</option>
         <option value="2">HP%</option>
         <option value="3">防御力%</option>
@@ -145,6 +145,7 @@ document.getElementById("addRowBtn").addEventListener("click", function(event) {
     newRowCell.innerHTML = "";
 
     set_header();
+    add_options_to_artifact_definition();
     // この下のmain_select(); を消してはいけない
     main_select();
 });
@@ -173,6 +174,8 @@ document.getElementById("removeRowBtn").addEventListener("click", function(event
         table3_header.deleteCell(table3_header.cells.length - 2);
         table3_row.deleteCell(table3_row.cells.length - 2);
     }
+
+    add_options_to_artifact_definition();
   });
 
 
@@ -277,7 +280,7 @@ function never_toobig() {
         c_multiplier.value = 20;
     }
     if (d_multiplier.value > 10) {
-        d_multiplier.value = 10
+        d_multiplier.value = 10;
     }
 }
 
@@ -437,7 +440,7 @@ function calculate_score() {
 
             let score = a_multiplier*status_a + b_multiplier*status_b + c_multiplier*status_c + d_multiplier*status_d;
             if (score) {
-                row.cells[7].querySelector("input").value = score;
+                row.cells[7].querySelector("input").value = score.toPrecision(3);
             }
         });
     }
@@ -469,7 +472,7 @@ function set_header() {
                 } else if (category_selects[i].value == "circlet") {
                     category = "冠";
                 } else {
-                    alert_error(2);
+                    alert("条件分岐に失敗しました");
                 }
 
                 // ステータスは 0: なし, 1: 攻撃力%, 2: HP%, 3: 防御力%, 4: 元素熟知, 5: 元素チャージ効率,
@@ -491,11 +494,12 @@ function set_header() {
                 } else if (mainstatus_selects[i].value == 8) {
                     main_status = "ダメ";
                 } else {
-                    alert_error(3);
+                    alert("条件分岐に失敗しました");
                 }
             }
-            headerRow1.cells[i].innerHTML = `<nobr><input type="checkbox" class="checkbox_input" onchange="change_below()" checked>${String(i+1) + " " + main_status + category}</nobr>`;
-            headerRow2.cells[i].innerHTML = `<nobr><input type="checkbox" class="checkbox_input" onchange="change_above()" checked>${String(i+1) + " " + main_status + category}</nobr>`;
+            let artifact_name = String(i+1) + " " + main_status + category;
+            headerRow1.cells[i].innerHTML = `<nobr><input type="checkbox" class="checkbox_input" onchange="change_below()" checked>${artifact_name}</nobr>`;
+            headerRow2.cells[i].innerHTML = `<nobr><input type="checkbox" class="checkbox_input" onchange="change_above()" checked>${artifact_name}</nobr>`;
         }
     },50);
 }
@@ -536,6 +540,233 @@ function change_above() {
 }
 
 
+// 聖遺物を正当に定義する
+// あらかじめ先に定義しておく
+let select1 = document.getElementById('define_artifact_subslot_options1');
+let select2 = document.getElementById('define_artifact_subslot_options2');
+
+// 更新を狙う聖遺物の選択肢を決定する
+function add_options_to_artifact_definition() {
+    // 少し待たないと不具合が起こる
+    setTimeout(function() {
+        var define_artifact_number_options = document.getElementById("define_artifact_number_options");
+        var number_options = ``;
+
+        var category_selects = document.getElementsByClassName("category-select");
+        var mainstatus_selects = document.getElementsByClassName("mein-select");
+
+        // 聖遺物の略称 ("3 攻撃時計" など) を取得する
+        for (let i = 0; i < category_selects.length; i++) {
+            let main_status = "";
+            let category;
+            if (category_selects[i].value == "flower") {
+                category = "花";
+            } else if (category_selects[i].value == "plume") {
+                category = "羽";
+
+            } else {
+                if (category_selects[i].value == "sand") {
+                    category = "時計";
+                } else if (category_selects[i].value == "goblet") {
+                    category = "杯";
+                } else if (category_selects[i].value == "circlet") {
+                    category = "冠";
+                } else {
+                    alert("条件分岐に失敗しました");
+                }
+
+                // ステータスは 0: なし, 1: 攻撃力%, 2: HP%, 3: 防御力%, 4: 元素熟知, 5: 元素チャージ効率,
+                // 6: 元素・物理ダメージバフ, 7: 会心率, 8: 会心ダメージ
+                if (mainstatus_selects[i].value == 1) {
+                    main_status = "攻撃";
+                } else if (mainstatus_selects[i].value == 2) {
+                    main_status = "HP";
+                } else if (mainstatus_selects[i].value == 3) {
+                    main_status = "防御";
+                } else if (mainstatus_selects[i].value == 4) {
+                    main_status = "熟知";
+                } else if (mainstatus_selects[i].value == 5) {
+                    main_status = "元チャ";
+                } else if (mainstatus_selects[i].value == 6) {
+                    main_status = "";
+                } else if (mainstatus_selects[i].value == 7) {
+                    main_status = "率";
+                } else if (mainstatus_selects[i].value == 8) {
+                    main_status = "ダメ";
+                } else {
+                    alert("条件分岐に失敗しました");
+                }
+            }
+
+            // 選択肢に追加
+            let artifact_name = String(i+1) + " " + main_status + category;
+            number_options += `<option value="${i+1}">${artifact_name}</option>`;
+        }
+
+        define_artifact_number_options.innerHTML = number_options;
+
+        add_options_to_subslot();
+    }, 50);
+}
+add_options_to_artifact_definition();
+
+// スコア計算式に含めるサブステータスを定義可能にする
+function add_options_to_subslot() {
+    // もう少し待たないと不具合が起こる
+    setTimeout(function() {
+        // スコア計算式に含めるサブステータスを定義可能にする
+        let status_a;
+        let status_b;
+        let formula = parseFloat(document.getElementById("multiplierSelect").value);
+        var subslot_options1 = `<option class="sub_critrate" value="7">会心率%</option><option class="sub_critdamage" value="8">会心ダメージ%</option>`;
+        var subslot_options2 = `<option class="sub_critrate" value="7">会心率%</option><option class="sub_critdamage" value="8">会心ダメージ%</option>`;
+        var define_artifact_subslot_options1 = document.getElementById("define_artifact_subslot_options1");
+        var define_artifact_subslot_options2 = document.getElementById("define_artifact_subslot_options2");
+
+        if (formula == 0) {
+            status_a = 0;
+            status_b = 0;
+        } else if (formula == 1) {
+            status_a = 1;
+            status_b = 0;
+        } else if (formula == 2) {
+            status_a = 1;
+            status_b = 4;
+        } else if (formula == 3) {
+            status_a = 2;
+            status_b = 0;
+        } else if (formula == 4) {
+            status_a = 2;
+            status_b = 4;
+        } else if (formula == 5) {
+            status_a = document.getElementById('status_a').value;
+            status_b = document.getElementById('status_b').value;
+        }
+
+        subslot_options1 +=
+        `<option class=${{0: "sub_else", 1: "sub_attack", 2: "sub_hp", 3: "sub_defence", 4: "sub_em", 5: "sub_er"}[status_a]} value="${status_a}">
+            ${{0: "その他", 1: "攻撃力%", 2: "HP%", 3: "防御力%", 4: "元素熟知", 5: "元素チャージ効率%"}[status_a]}
+        </option>`;
+        subslot_options2 +=
+        `<option class=${{0: "sub_else", 1: "sub_attack", 2: "sub_hp", 3: "sub_defence", 4: "sub_em", 5: "sub_er"}[status_a]} value="${status_a}">
+            ${{0: "その他", 1: "攻撃力%", 2: "HP%", 3: "防御力%", 4: "元素熟知", 5: "元素チャージ効率%"}[status_a]}
+        </option>`;
+
+        if (status_a == 0 && status_b == 0) {
+            subslot_options1 += `<option class=0 value=-1>その他</option>`;
+            subslot_options2 += `<option class=0 value=-1>その他</option>`;
+        } else {
+            subslot_options1 +=
+            `<option class=${{0: "sub_else", 1: "sub_attack", 2: "sub_hp", 3: "sub_defence", 4: "sub_em", 5: "sub_er"}[status_b]} value="${status_b}">
+                ${{0: "その他", 1: "攻撃力%", 2: "HP%", 3: "防御力%", 4: "元素熟知", 5: "元素チャージ効率%"}[status_b]}
+            </option>`;
+            subslot_options2 +=
+            `<option class=${{0: "sub_else", 1: "sub_attack", 2: "sub_hp", 3: "sub_defence", 4: "sub_em", 5: "sub_er"}[status_b]} value="${status_b}">
+                ${{0: "その他", 1: "攻撃力%", 2: "HP%", 3: "防御力%", 4: "元素熟知", 5: "元素チャージ効率%"}[status_b]}
+            </option>`;
+        }
+
+        define_artifact_subslot_options1.innerHTML = subslot_options1;
+        define_artifact_subslot_options2.innerHTML = subslot_options2;
+
+        disable_options_of_artifact_definition();
+    }, 50);
+}
+add_options_to_subslot();
+
+// サブステータスの定義において、メインステータスと一致するステータスの選択肢を削除し、選択するサブステータスの初期値を入力する
+function disable_options_of_artifact_definition() {
+    // メインステータスと一致する選択肢の削除
+    var subslot_options1 = document.getElementById("define_artifact_subslot_options1");
+    var subslot_options2 = document.getElementById("define_artifact_subslot_options2");
+
+    var subslot_options = [subslot_options1, subslot_options2]
+    let artifact_number = document.getElementById("define_artifact_number_options").value - 1;
+    var category = document.getElementsByClassName("category-select")[artifact_number].value;
+    var mainstatus = parseFloat(document.getElementsByClassName("mein-select")[artifact_number].value);
+    let status1_select;
+
+    if (category == "flower" || category == "plume") {
+        mainstatus = 0;
+    }
+    subslot_options.forEach(options => {
+        if (mainstatus == 1) {
+            if (options.querySelector(".sub_attack")) {
+                options.querySelector(".sub_attack").remove();
+            }
+        } else if (mainstatus == 2) {
+            if (options.querySelector(".sub_hp")) {
+                options.querySelector(".sub_hp").remove();
+            }
+        } else if (mainstatus == 3) {
+            if (options.querySelector(".sub_defence")) {
+                options.querySelector(".sub_defence").remove();
+            }
+        } else if (mainstatus == 4) {
+            if (options.querySelector(".sub_em")) {
+                options.querySelector(".sub_em").remove();
+            }
+        } else if (mainstatus == 5) {
+            if (options.querySelector(".sub_er")) {
+                options.querySelector(".sub_er").remove();
+            }
+        } else if (mainstatus == 7) {
+            if (options.querySelector(".sub_critrate")) {
+                options.querySelector(".sub_critrate").remove();
+            }
+        } else if (mainstatus == 8) {
+            if (options.querySelector(".sub_critdamage")) {
+                options.querySelector(".sub_critdamage").remove();
+            }
+        }
+
+        // サブステータスの選択の初期値
+        if (options == subslot_options1) {
+            status1_select = [...options.querySelectorAll("option")][0];
+            status1_select.selected = true;
+        } else {
+            for (let option of [...options.querySelectorAll("option")]) {
+                if (option.value != status1_select.value) {
+                    option.selected = true;
+                    break
+                }
+            }
+        }
+
+    });
+
+    updateSubslotOptions();
+}
+
+// サブステータスを重複して選択できないようにする
+select1.addEventListener('change', updateSubslotOptions);
+select2.addEventListener('change', updateSubslotOptions);
+
+function updateSubslotOptions() {
+    const selectedOption1 = select1.value;
+    const selectedOption2 = select2.value;
+    const options1 = select1.querySelectorAll('option');
+    const options2 = select2.querySelectorAll('option');
+
+
+    options1.forEach(option => {
+        if (option.value === selectedOption2) {
+            option.disabled = true;
+        } else {
+            option.disabled = false;
+        }
+    });
+
+    options2.forEach(option => {
+        if (option.value === selectedOption1) {
+            option.disabled = true;
+        } else {
+            option.disabled = false;
+        }
+    });
+}
+
+
 // 行列の積を計算する関数
 function matrixMultiply(a, b) {
     const result = [];
@@ -553,6 +784,7 @@ function matrixMultiply(a, b) {
 }
 
 
+
 // スコア計算式と種類、産地、スコアから上位% を取得するテーブルを返す関数
 // https://www.hoyolab.com/article/23047502 を参照のこと
 // 以下において聖遺物の「種類」（英: "category"）とは、聖遺物の花、羽、時計、杯、および冠の5つの属性のことを指す
@@ -565,9 +797,87 @@ function matrixMultiply(a, b) {
 //       'goblet(domain)', 'goblet(box)', 'c-circlet(domain)', 'c-circlet(box)',
 //       'd-circlet(domain)', 'd-circlet(box)']
 
+
+// 共通して用いる定数の定義
+// iniSlots は聖遺物の初めのステータスの内容
+const iniSlots = [
+    [1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 0, 1], [1, 1, 0, 0],
+    [1, 0, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1], [1, 0, 0, 0],
+    [0, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 1], [0, 1, 0, 0],
+    [0, 0, 1, 1], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]
+];
+
+// p[n][s] は 0, 1, 2, 3 の中から和がsになるようにn個とる場合の数
+const p = [];
+for (let n = 0; n < 8; n++) {
+    let q = new Array(3 * n + 1).fill(0);
+    for (let i = 0; i < Math.pow(4, n); i++) {
+        let binary = i.toString(4).padStart(n, '0');
+        let sum = 0;
+        for (let j = 0; j < binary.length; j++) {
+            sum += parseInt(binary[j]);
+        }
+        q[sum]++;
+    }
+    p.push(q);
+}
+
+// ultSlots は聖遺物の最終的なステータスの内容
+const ultSlots = [];
+for (const [a, b, c, d] of iniSlots) {
+    for (let x = 0; x <= 5; x++) {
+        for (let y = 0; y <= 5; y++) {
+            for (let z = 0; z <= 5; z++) {
+                for (let w = 0; w <= 5; w++) {
+                    for (let i of [4, 5]) {
+                        if (x + y + z + w === i) {
+                            const content = [a * (x + 1), b * (y + 1), c * (z + 1), d * (w + 1)];
+                            if (!ultSlots.some(slot => slot.every((val, idx) => val === content[idx]))) {
+                                ultSlots.push(content);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+// console.log(ultSlots);
+
+// scoreArray を取得する補助関数
+// scoreArray は参考記事の行列3に該当する
+// scoreArray は横軸に聖遺物の強化される最終的なサブステータス、縦軸に聖遺物のスコアをとり、対応する交点にその確率を格納する配列
+function get_scoreArray(a0, b0, c0, d0) {
+    // scoreArray を作成
+    let statusList = [a0, b0, c0, d0];
+    let maax = Math.ceil((Math.max(...statusList) * 5 + a0 + b0 + c0 + d0) * 10) + 1;
+    let scoreArray = Array.from({ length: maax }, () => Array(ultSlots.length).fill(0));
+
+    for (let x = 0; x < ultSlots.length; x++) {
+        let [a, b, c, d] = ultSlots[x];
+        let mainScore = 7 * (a0*a + b0*b + c0*c + d0*d);
+
+        for (let i = 0; i <= 3 * a; i++) {
+            for (let j = 0; j <= 3 * b; j++) {
+                for (let k = 0; k <= 3 * c; k++) {
+                    for (let l = 0; l <= 3 * d; l++) {
+                        let subScore = (a0*i + b0*j + c0*k + d0*l);
+                        let roundScore = Math.round(mainScore + subScore);
+                        scoreArray[roundScore][x] += p[a][i] * p[b][j] * p[c][k] * p[d][l] / Math.pow(4, a+b+c+d);
+                    }
+                }
+            }
+        }
+    }
+    
+    return scoreArray;
+}
+
+
 function get_top(a0, b0, c0, d0) {
     // strengtheningArray を取得
-    // strengtheningArray は横軸に聖遺物の種類と産地、縦軸に聖遺物の最終的なスコアをとり、対応する交点にその確率を格納する配列
+    // 参考記事の行列1と行列2の積に該当する
+    // strengtheningArray は横軸に聖遺物の種類と産地、縦軸に最終的に強化されるサブステータスをとり、対応する交点にその確率を格納する配列
     // 読み込むcsvファイルは"artifact probability calculator.ver3.py"（未公開）を用いて作成した
 
     // console.log("start calculating...")
@@ -579,7 +889,7 @@ function get_top(a0, b0, c0, d0) {
     try {
         csv.send(null);
     } catch (err) {
-        alert_error(4);
+        alert("データの読み込みに失敗しました。ページを読み込みなおしてください。");
     }
 
     let strengtheningArray = [];
@@ -592,84 +902,13 @@ function get_top(a0, b0, c0, d0) {
     }
     // console.log(strengtheningArray)
 
+    // scoreArray を取得
+    let scoreArray = get_scoreArray(a0, b0, c0, d0);
 
-    // p[n][s] は 0, 1, 2, 3 の中から和がsになるようにn個とる場合の数
-    let p = [];
-    for (let n = 0; n < 8; n++) {
-        let q = new Array(3 * n + 1).fill(0);
-        for (let i = 0; i < Math.pow(4, n); i++) {
-            let binary = i.toString(4).padStart(n, '0');
-            let sum = 0;
-            for (let j = 0; j < binary.length; j++) {
-                sum += parseInt(binary[j]);
-            }
-            q[sum]++;
-        }
-        p.push(q);
-    }
-    // console.log(p);
-
-
-    // iniSlots は聖遺物の初めのステータスの内容
-    const iniSlots = [
-        [1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 0, 1], [1, 1, 0, 0],
-        [1, 0, 1, 1], [1, 0, 1, 0], [1, 0, 0, 1], [1, 0, 0, 0],
-        [0, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 1], [0, 1, 0, 0],
-        [0, 0, 1, 1], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]
-    ];
-
-
-    // ultSlots は聖遺物の最終的なステータスの内容
-    const ultSlots = [];
-    for (const [a, b, c, d] of iniSlots) {
-        for (let x = 0; x <= 5; x++) {
-            for (let y = 0; y <= 5; y++) {
-                for (let z = 0; z <= 5; z++) {
-                    for (let w = 0; w <= 5; w++) {
-                        for (let i of [4, 5]) {
-                            if (x + y + z + w === i) {
-                                const content = [a * (x + 1), b * (y + 1), c * (z + 1), d * (w + 1)];
-                                if (!ultSlots.some(slot => slot.every((val, idx) => val === content[idx]))) {
-                                    ultSlots.push(content);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // console.log(ultSlots);
-
-
-    // scoreArray を作成
-    // scoreArray は横軸に聖遺物の最終的なステータス、縦軸に聖遺物のスコアをとり、対応する交点にその確率を格納する配列
-    const statusList = [a0, b0, c0, d0];
-    const maax = Math.ceil((Math.max(...statusList) * 5 + a0 + b0 + c0 + d0) * 10) + 1;
-    const scoreArray = Array.from({ length: maax }, () => Array(ultSlots.length).fill(0));
-
-    for (let x = 0; x < ultSlots.length; x++) {
-        const [a, b, c, d] = ultSlots[x];
-        const mainScore = 7 * (a0*a + b0*b + c0*c + d0*d);
-
-        for (let i = 0; i <= 3 * a; i++) {
-            for (let j = 0; j <= 3 * b; j++) {
-                for (let k = 0; k <= 3 * c; k++) {
-                    for (let l = 0; l <= 3 * d; l++) {
-                        const subScore = (a0*i + b0*j + c0*k + d0*l);
-                        const roundScore = Math.round(mainScore + subScore);
-                        scoreArray[roundScore][x] += p[a][i] * p[b][j] * p[c][k] * p[d][l] / Math.pow(4, a+b+c+d);
-                    }
-                }
-            }
-        }
-    }
-    // console.log(scoreArray);
-
-
-    // scoreArray を作成
-    // scoreArray は、横軸に聖遺物種類と産地、縦軸に聖遺物の上位%をとり、対応する交点にその確率を格納する配列
+    // data_table を作成
+    // data_table は、横軸に聖遺物種類と産地、縦軸に聖遺物の上位%をとり、対応する交点にその確率を格納する配列
     let data_table = matrixMultiply(scoreArray, strengtheningArray);
+
     for (let j = 2; j <= data_table.length; j++) {
         for (let i = 0; i < data_table[0].length; i++) {
             data_table[data_table.length-j][i] += data_table[data_table.length-j + 1][i];
@@ -688,8 +927,11 @@ var domain_tops;
 var box_tops;
 
 
-// 聖遺物の上位%と評価を計算する関数
-function calculate_top(){
+// スコア基礎値 (a0, b0, c0, d0) を決定する関数
+let status_a;
+let status_b;
+
+function get_base_score() {
     domain_tops = [];
     box_tops = [];
 
@@ -699,9 +941,6 @@ function calculate_top(){
     // ステータスは 0: なし, 1: 攻撃力%, 2: HP%, 3: 防御力%, 4: 元素熟知, 5: 元素チャージ効率,
     // 6: 元素・物理ダメージバフ, 7: 会心率, 8: 会心ダメージ
     // 治療効果バフは扱わない
-    let status_a;
-    let status_b;
-
     let a_multiplier = 1;
     let b_multiplier = 1;
     let c_multiplier = 2;
@@ -767,7 +1006,7 @@ function calculate_top(){
     } else if (status_a == 0) {
         a0 = 0;
     } else {
-        alert_error(5);
+        alert("条件分岐に失敗しました");
     }
 
     if (status_b == 1) {
@@ -783,13 +1022,20 @@ function calculate_top(){
     } else if (status_b == 0) {
         b0 = 0;
     } else {
-        alert_error(6);
+        alert("条件分岐に失敗しました");
     }
 
     c0 = 2 * c_multiplier;
     d0 = 4 * d_multiplier;
-    // console.log(a0, b0, c0, d0)
 
+    // console.log(a0, b0, c0, d0)
+    return [a0, b0, c0, d0];
+}
+
+
+// 聖遺物の上位%と評価を計算する関数
+function calculate_top() {
+    [a0, b0, c0, d0] = get_base_score();
     const data_table = get_top(a0, b0, c0, d0);
 
 
@@ -859,10 +1105,9 @@ function calculate_top(){
                         main_p = 1/25;
                     }
                 } else {
-                    alert_error(7);
+                    alert("条件分岐に失敗しました");
                 }
             }
-            if (!main_p) {alert_error(8);}
 
 
             // 聖遺物の上位% を産地別で求める
@@ -899,8 +1144,7 @@ function calculate_top(){
 
 
     // 上位% を計算後、表を右側にスクロールさせる
-    var tableContainer = document.querySelector('.tap_to_scrollright');
-    tableContainer.scrollLeft = 1000;
+    document.getElementById("artifact_table_div").scrollLeft = 1000;
 }
 
 
@@ -954,8 +1198,6 @@ function calculate_probability(){
             multiplier = 2.14;
         } else if (getting_way === "box") {
             multiplier = 1 / (3 - strong_rate);
-        } else {
-            alert_error(9);
         }
 
         // より強い聖遺物を獲得する確率を計算
@@ -1011,7 +1253,7 @@ function calculate_probability(){
             } else if (main_status == 5) {
                 if (check && bases.er_sand > base) {bases.er_sand = base;}
             } else {
-                alert_error(10);
+                alert("条件分岐に失敗しました");
             }
         } else if (category == "goblet") {
             if (main_status == 1) {
@@ -1025,7 +1267,7 @@ function calculate_probability(){
             } else if (main_status == 6) {
                 if (check && bases.dmgbuff_goblet > base) {bases.dmgbuff_goblet = base;}
             } else {
-                alert_error(11);
+                alert("条件分岐に失敗しました");
             }
         } else if (category == "circlet") {
             if (main_status == 1) {
@@ -1041,10 +1283,10 @@ function calculate_probability(){
             } else if (main_status == 8) {
                 if (check && bases.dmg_circlet > base) {bases.dmg_circlet = base;}
             } else {
-                alert_error(12);
+                alert("条件分岐に失敗しました");
             }
         } else {
-            alert_error(13);
+            alert("条件分岐に失敗しました");
         }
     }
 
@@ -1082,12 +1324,370 @@ function get_base(domain_top, box_top, birthplace, strong_rate) {
     } else if (birthplace == "both") {
         return (1 - domain_top/10) * (1 - box_top/5)**(strong_rate/(3 - strong_rate));
     } else {
-        alert_error(14);
+        alert("条件分岐に失敗しました");
     }
 }
 
 
-// ファイルの読み込み失敗や条件分岐の失敗が起こった際にアラートする
-function alert_error(number) {
-    alert(`予期せぬエラーが発生しました。ページを読み込みなおしてください。お手数ですが、制作者までご連絡くださるとうれしいです。エラー番号: ${number}`);
+// 補助関数の定義 (全部GPT-4oに書いてもらった)
+function vectMinus(v, w) {
+    let ans = new Array(v.length).fill(0);
+    for (let i = 0; i < v.length; i++) {
+        ans[i] = v[i] - w[i];
+    }
+    return ans;
+}
+
+function vectDot(v, w) {
+    let ans = 0;
+    for (let i = 0; i < v.length; i++) {
+        ans += v[i] * w[i];
+    }
+    return ans;
+}
+
+function factorial(n) {
+    let ans = 1;
+    for (let i = 1; i <= n; i++) {
+        ans *= i;
+    }
+    return ans;
+}
+
+function combination(n, r) {
+    let a = 1;
+    for (let i of r) {
+        a *= factorial(i);
+    }
+    return factorial(n) / a;
+}
+
+function to2DList(data) {
+    const keys = Object.keys(Object.values(data)[0]);
+    return keys.map(key2 => Object.keys(data).map(key1 => data[key1][key2]));
+}
+
+
+// 聖遺物定義分析において、定義した聖遺物が既存の聖遺物を更新する確率を計算する関数
+function calculate_definition_artifact_probability() {
+    // 値の更新をかけるため、先に計算しておく
+    calculate_top();
+
+    // data_table を作成
+    // data_table は聖遺物定義分析において、定義した聖遺物のスコアごとの上位%を格納した配列
+
+    // slot_dict を作成
+    // slot_dict は聖遺物のサブステータスの内容((1, 1, 1, 1)など)に対して、そのステータスになる確率を格納する連想配列
+
+    // 定数の定義
+    const slotnames = ["a", "b", "c", "d", "p", "f"];
+    const slots = [
+        [1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]
+    ];
+    const weight = [4, 4, 3, 3, 4, 6];
+    const category_main = {
+        "flower": [0, 0, 0, 0, 0, 1], "a-sand": [1, 0, 0, 0, 0, 0],
+        "b-sand": [0, 1, 0, 0, 0, 0], "p-sand": [0, 0, 0, 0, 1, 0],
+        "goblet": [0, 0, 0, 0, 0, 0], "c-circlet": [0, 0, 1, 0, 0, 0],
+        "d-circlet": [0, 0, 0, 1, 0, 0]
+    };
+    
+    // 聖遺物の種類とメインステータス、初めに指定するサブステータスを指定する
+    let category;
+    let ini_subslot_name = "";
+
+    let defined_artifact_row = document.getElementById("artifact_table").rows[document.getElementById("define_artifact_number_options").value];
+    let defined_artifact_category = defined_artifact_row.cells[1].children[0].value;
+    
+    if (defined_artifact_category == "flower") {
+        category = "flower";
+    } else if (defined_artifact_category == "plume") {
+        category = "flower";
+    
+    } else {
+        let main_slot = parseFloat(defined_artifact_row.cells[2].children[2].value);
+        if (main_slot == 6) {
+            category = "goblet";
+        } else if (main_slot == 7) {
+            category = "c-circlet";
+        } else if (main_slot == 8) {
+            category = "d-circlet";
+        } else if (main_slot == status_a) {
+            category = "a-sand";
+        } else if (main_slot == status_b) {
+            category = "b-sand";
+        } else {
+            category = "p-sand";
+        }
+    }
+
+    let defined_subslot1 = parseFloat(document.getElementById("define_artifact_subslot_options1").value);
+    let defined_subslot2 = parseFloat(document.getElementById("define_artifact_subslot_options2").value);
+    let defined_slot1;
+    let defined_slot2;
+
+    if (defined_subslot1 == -1) {defined_subslot1 = 0;}
+    if (defined_subslot2 == -1) {defined_subslot2 = 0;}
+
+    if (defined_subslot1 == 0 && defined_subslot2 == 0) {
+        ini_subslot_name += "ab";
+        defined_slot1 = "a";
+        defined_slot2 = "b";
+    } else {
+        if (defined_subslot1 == status_a) {
+            ini_subslot_name += "a";
+            defined_slot1 = "a";
+        } else if (defined_subslot1 == status_b) {
+            ini_subslot_name += "b";
+            defined_slot1 = "b";
+        } else if (defined_subslot1 == 7) {
+            ini_subslot_name += "c";
+            defined_slot1 = "c";
+        } else if (defined_subslot1 == 8) {
+            ini_subslot_name += "d";
+            defined_slot1 = "d";
+        } else {
+            alert("想定していない条件が入力されました")
+        }
+
+        if (defined_subslot2 == status_a) {
+            ini_subslot_name += "a";
+            defined_slot2 = "a";
+        } else if (defined_subslot2 == status_b) {
+            ini_subslot_name += "b";
+            defined_slot2 = "b";
+        } else if (defined_subslot2 == 7) {
+            ini_subslot_name += "c";
+            defined_slot2 = "c";
+        } else if (defined_subslot2 == 8) {
+            ini_subslot_name += "d";
+            defined_slot2 = "d";
+        } else {
+            alert("想定していない条件が入力がされました")
+        }
+    }
+    // console.log(category, ini_subslot_name);
+    // console.log(defined_slot1 + defined_slot2);
+
+
+    // 聖遺物のサブステータスの内容(abcd, abdcなど)とその内容になる確率を計算する
+    let probability = { [ini_subslot_name]: 1 };
+    let ini_subslot = vectMinus([1, 1, 1, 1, 3, 3], category_main[category]);
+    
+    for (let i = 0; i < 6; i++) {
+        if (ini_subslot_name.includes(slotnames[i])) {
+            ini_subslot = vectMinus(ini_subslot, slots[i]);
+        }
+    }
+    
+    let quantity = { [ini_subslot_name]: ini_subslot };
+    
+    for (let _ = 0; _ < 4 - ini_subslot_name.length; _++) {
+        let probability2 = {};
+        let quantity2 = {};
+    
+        for (let i in quantity) {
+            for (let j = 0; j < 6; j++) {
+                if (quantity[i][j] !== 0) {
+                    let newKey = i + slotnames[j];
+                    quantity2[newKey] = vectMinus(quantity[i], slots[j]);
+                    probability2[newKey] = probability[i] * weight[j] * quantity[i][j] / vectDot(weight, quantity[i]);
+                }
+            }
+        }
+        probability = probability2;
+        quantity = quantity2;
+    }
+    // console.log(probability);
+    
+    // 聖遺物のサブステータスの内容((1, 1, 1, 1)など)とその内容になる確率を計算する
+    let probability2 = {};
+    iniSlots.forEach(slot => {
+        probability2[JSON.stringify(slot)] = 0;
+    });
+    
+    for (let i in probability) {
+        let a = i.includes("a") ? 1 : 0;
+        let b = i.includes("b") ? 1 : 0;
+        let c = i.includes("c") ? 1 : 0;
+        let d = i.includes("d") ? 1 : 0;
+        let key = JSON.stringify([a, b, c, d]);
+        probability2[key] += probability[i];
+    }
+    
+    let slot_dict = probability2;
+    // console.log(slot_dict);
+    
+
+    // strengthening_dict を作成
+    // strengthening_dict は、各聖遺物のサブステータスの内容((1, 1, 1, 1)など)に対して、
+    // 「聖遺物の最終的な強化内容に対してその内容になる確率を格納する連想配列」を格納する二重の連想配列
+
+    // 初期4op確率は1/3 であるとする (詳細不明)
+    const p_4op = 1/3;
+
+    // 定義していないサブステータス
+    let else_slots = ["a", "b", "c", "d"].filter(
+        (x) => ![defined_slot1, defined_slot2].includes(x)
+    );
+    let else_slot1 = else_slots[0];
+    let else_slot2 = else_slots[1];
+    
+
+    const strengthening_dict2 = {};
+    
+    // 初期4op の場合
+    for (const x1 of ["a", "b", "c", "d"]) {
+        for (const x2 of ["a", "b", "c", "d"]) {
+            for (const x3 of ["a", "b", "c", "d"]) {
+                for (let x4 of ["a", "b", "c", "d"]) {
+                    for (let x5 of ["a", "b", "c", "d"]) {
+                        // 保証がちょうど2回発動する場合
+                        if (
+                            [x1, x2, x3].filter((x) =>
+                            [defined_slot1, defined_slot2].includes(x)
+                            ).length === 0
+                        ) {
+                            x4 = x4.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                            x5 = x5.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                        }
+                        // 保証がちょうど1回発動する場合
+                        else if (
+                            [x1, x2, x3, x4].filter((x) =>
+                            [defined_slot1, defined_slot2].includes(x)
+                            ).length === 1
+                        ) {
+                            x5 = x5.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                        }
+                
+                        // 強化回数を(a, b, c, d) で表す
+                        const a = [x1, x2, x3, x4, x5].filter((x) => x === "a").length;
+                        const b = [x1, x2, x3, x4, x5].filter((x) => x === "b").length;
+                        const c = [x1, x2, x3, x4, x5].filter((x) => x === "c").length;
+                        const d = [x1, x2, x3, x4, x5].filter((x) => x === "d").length;
+                
+                        const key = `${a},${b},${c},${d}`;
+                        if (!strengthening_dict2[key]) {
+                            strengthening_dict2[key] = 0;
+                        }
+                        strengthening_dict2[key] += p_4op * (1/4) ** 5;
+                    }
+                }
+            }
+        }
+    }
+    
+    // 初期3op の場合
+    for (const x1 of ["a", "b", "c", "d"]) {
+        for (const x2 of ["a", "b", "c", "d"]) {
+            for (let x3 of ["a", "b", "c", "d"]) {
+                for (let x4 of ["a", "b", "c", "d"]) {
+                    // 保証がちょうど2回発動する場合
+                    if (
+                        [x1, x2].filter((x) => [defined_slot1, defined_slot2].includes(x)
+                        ).length === 0
+                    ) {
+                        x3 = x3.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                        x4 = x4.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                    }
+                    // 保証がちょうど1回発動する場合
+                    else if (
+                        [x1, x2, x3].filter((x) =>
+                        [defined_slot1, defined_slot2].includes(x)
+                        ).length === 1
+                    ) {
+                        x4 = x4.replace(else_slot1, defined_slot1).replace(else_slot2, defined_slot2);
+                    }
+            
+                    // 強化回数を(a, b, c, d) で表す
+                    const a = [x1, x2, x3, x4].filter((x) => x === "a").length;
+                    const b = [x1, x2, x3, x4].filter((x) => x === "b").length;
+                    const c = [x1, x2, x3, x4].filter((x) => x === "c").length;
+                    const d = [x1, x2, x3, x4].filter((x) => x === "d").length;
+            
+                    const key = `${a},${b},${c},${d}`;
+                    if (!strengthening_dict2[key]) {
+                        strengthening_dict2[key] = 0;
+                    }
+                    strengthening_dict2[key] += (1 - p_4op) * (1 / 4) ** 4;
+                }
+            }
+        }
+    }
+    
+    // console.log(strengthening_dict2);
+
+
+    const strengthening_dict = {};
+    iniSlots.forEach((ini_slot) => {
+        strengthening_dict[ini_slot] = ultSlots.reduce((obj, ult_slot) => {
+            obj[ult_slot] = 0;
+            return obj;
+        }, {});
+    });
+    
+    function change_key(ini_slot, slot) {
+        const a = ini_slot[0] * (slot[0] + 1);
+        const b = ini_slot[1] * (slot[1] + 1);
+        const c = ini_slot[2] * (slot[2] + 1);
+        const d = ini_slot[3] * (slot[3] + 1);
+        return `${a},${b},${c},${d}`;
+    }
+    
+    iniSlots.forEach((ini_slot) => {
+        Object.keys(strengthening_dict2).forEach((slotKey) => {
+            const slot = slotKey.split(",").map(Number);
+            const newKey = change_key(ini_slot, slot);
+            if (!strengthening_dict[ini_slot][newKey]) {
+            strengthening_dict[ini_slot][newKey] = 0;
+        }
+        strengthening_dict[ini_slot][newKey] += strengthening_dict2[slotKey];
+      });
+    });
+    
+    // console.log(strengthening_dict);
+
+
+    // strengtheningArray を作成する
+    // strengtheningArray は聖遺物の最終的な強化内容と定義した聖遺物がその強化内容になる確率を格納する配列
+    let strengtheningArray = matrixMultiply(to2DList(strengthening_dict), Object.values(slot_dict).map(item => [item]));
+    // console.log(strengtheningArray);
+
+
+    // scoreArray の取得
+    [a0, b0, c0, d0] = get_base_score();
+    let scoreArray = get_scoreArray(a0, b0, c0, d0);
+
+    // data_table の作成
+    // data_table はスコアs (s = 1.36/7 点)をと定義した聖遺物がそのスコア以上になる確率(上位%)を格納する配列
+    let data_table = matrixMultiply(scoreArray, strengtheningArray).map(item => item[0]);
+
+    // 確率の合計が1であるかの確認
+    // let sum = 0
+    // for (let num of data_table) {
+    //     sum = sum + num;
+    // }
+    // console.log(sum);
+
+    for (let i = 2; i <= data_table.length; i++) {
+        data_table[data_table.length - i] += data_table[data_table.length - i + 1];
+    }
+    // console.log(data_table);
+    
+
+    // 定義した聖遺物が既存の聖遺物を更新する確率を計算
+    let score = parseFloat(defined_artifact_row.cells[7].children[0].value) || 0;
+    score = Math.round(score * (7 / 1.36));
+
+    let prob = 0;
+    if (score < data_table.length) {
+        prob = data_table[score];
+    }
+    
+    document.getElementById("define_artifact_probability").innerHTML = `${(100 * prob).toPrecision(3)} %`;
+
+
+    // 更新確率を計算後、表を右側にスクロールさせる
+    document.getElementById("artifact_definition_table_div").scrollLeft = 1000;
 }
