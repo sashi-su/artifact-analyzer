@@ -35,7 +35,6 @@ main {
 }
 
 section {
-    background-color: #f0f0f0;
     padding: 20px;
     margin-bottom: 50px;
     border-radius: 5px;
@@ -68,7 +67,6 @@ input {
     box-sizing: border-box;
     font-size: 15px
 }
-
 
 .score-input {
     width: 50px;
@@ -295,3 +293,6 @@ td {
     cursor:pointer;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
